@@ -1,0 +1,34 @@
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      volumes:
+      - name: node-storer
+        emptyDir: {}
+      containers:
+      - name: nginx
+        image: docker.io/rizahmed1/nginx_flaskc
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: node-storer
+          mountPath: /data/node-storer
+      - name: init-myservice
+        image: busybox:1.28
+        command: ["sh", "-c"]
+        volumeMounts:
+        - name: node-storer
+          mountPath: /data/node-storer
+        args:
+        - while true; do
+            echo -en '\n';
+            printenv MY_NODE_NAME
+            echo $MY_NODE_NAME > /data/node-storer/file1.txt;
+            sleep 3000;
+          done;
+        env:
+          - name: MY_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
